@@ -1,0 +1,24 @@
+[submodule "workspace/gzoom-legacy"]
+	path = workspace/gzoom-legacy
+	url = git@github.com:umarciano/gzoom-legacy.git
+[submodule "workspace/gzoom2-be"]
+	path = workspace/gzoom2-be
+	url = git@github.com:umarciano/gzoom2-be.git
+[submodule "workspace/gzoom2-fe"]
+	path = workspace/gzoom2-fe
+	url = git@github.com:umarciano/gzoom2-fe.git
+[submodule "workspace/gzoom2-report"]
+	path = workspace/gzoom2-report
+	url = git@github.com:umarciano/gzoom2-report.git
+[submodule "workspace/gzoom-doc"]
+	path = workspace/gzoom-doc
+	url = git@github.com:umarciano/gzoom-doc.git
+[submodule "workspace/maps-gzoom"]
+	path = workspace/maps-gzoom
+	url = git@github.com:umarciano/maps-gzoom.git
+[submodule "workspace/gzoom-samlweb"]
+	path = workspace/gzoom-samlweb
+	url = git@github.com:umarciano/gzoom-samlweb.git
+[submodule "workspace/reactive-tutorial"]
+	path = workspace/reactive-tutorial
+	url = git@github.com:umarciano/reactive-tutorial.git
