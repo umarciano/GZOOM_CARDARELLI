@@ -414,3 +414,119 @@ context.userPartyId = "partyId_utente";
 - ✅ **Dropdown completa**: Tutte le schede secondo i constraint normali
 
 ---
+
+## 🎯 IMPLEMENTAZIONE PORTALE "MIE PERFORMANCE" (Settembre 2025)
+
+### Obiettivo
+Implementare un portale dedicato per consentire ai dipendenti di visualizzare le proprie schede di valutazione in modalità **read-only** e solo quando sono nello stato "**Valutazione Conclusa**".
+
+### Funzionalità Implementate
+
+#### 1. **Configurazione Menu e Portale**
+- **Voce Menu**: "Mie performance" (sostituita la label tecnica NOPORTAL_MY)
+- **Portale ID**: `GP_WE_PORTAL_3`
+- **Gruppo Sicurezza**: `NOPORTAL_MY`
+- **Accesso**: Solo utenti con gruppo di sicurezza NOPORTAL_MY
+
+#### 2. **Modalità Read-Only Automatica**
+Quando si accede dal portale "Mie performance", tutti i campi delle schede diventano automaticamente non modificabili:
+
+**Rilevamento Portale**:
+- Analisi dell'URL e referrer HTTP per identificare accesso da `GP_WE_PORTAL_3`
+- Gestione della sessione per mantenere lo stato read-only durante la navigazione
+- Propagazione del parametro `forceReadOnly=Y` attraverso le tab
+
+**Enforcement Read-Only**:
+- Form principali: campi input disabilitati
+- Indicatori di performance: righe non modificabili
+- Pulsanti azione: nascosti o disabilitati
+
+#### 3. **Filtro Stato Schede**
+Nel portale "Mie performance" vengono mostrate **SOLO** le schede nello stato:
+- **`WEEVALST_EXECFINAL`** - "Valutazione Conclusa"
+
+Questo garantisce che il dipendente possa vedere le proprie schede solo dopo che il valutatore ha completato la valutazione.
+
+### File Modificati
+
+#### 1. **JavaScript - Iniezione Parametri**
+**File**: `WorkEffortMyPerformanceSummary-list-extension.js.ftl`
+```javascript
+// Rileva click sul portale GP_WE_PORTAL_3 e aggiunge parametri read-only
+if (portalPageId === 'GP_WE_PORTAL_3') {
+    newUrl += "&forceReadOnly=Y&managementFormType=view";
+}
+```
+
+#### 2. **Script Groovy - Rilevamento Portale**
+**File**: `checkPortalReadOnlyMode.groovy` (NUOVO)
+```groovy
+// Rileva accesso da portale GP_WE_PORTAL_3
+// Analizza URL, queryString e referrer HTTP
+// Imposta flag read-only in sessione
+```
+
+#### 3. **Script Groovy - Validazione Campi**
+**File**: `checkWorkEffortViewFormReadOnly.groovy` (NUOVO)
+```groovy
+// Imposta isWorkEffortViewFormReadOnly = Y per portale
+context.isWorkEffortViewFormReadOnly = "Y"
+```
+
+#### 4. **Script Groovy - Controllo Righe**
+**File**: `isRowReadOnlyWorkEffortMeasure.groovy` (NUOVO)
+```groovy
+// Disabilita modifiche alle righe degli indicatori
+context.isRowReadOnlyWorkEffortMeasure = true
+```
+
+#### 5. **Script Groovy - Filtro Stato**
+**File**: `checkPortalMyPerformanceFilter.groovy` (NUOVO)
+```groovy
+// Filtra schede per stato WEEVALST_EXECFINAL quando accesso da portale
+if (isMyPerformancePortal) {
+    context.currentStatusId = "WEEVALST_EXECFINAL";
+}
+```
+
+#### 6. **Schermate XML - Integrazione Script**
+**File**: `SubFolderManagementContainerOnlyScreen` e `WorkEffortMeasureIndicatorDetailTransactionPanel`
+- Aggiunta inclusione script di controllo read-only
+- Copertura completa di tutte le schermate di navigazione
+
+#### 7. **Portale Screen - Filtro Query**
+**File**: `WorkeffortExtScreens.xml`
+- Modifica schermata `WorkEffortMyPerformanceSummaryListScreen`
+- Inclusione script filtro stato prima della query
+- Query limitata alle schede con `currentStatusId = WEEVALST_EXECFINAL`
+
+### Configurazione Label
+**File**: `it_IT.json` (come risolto dall'utente)
+- Aggiunta traduzione italiana "Mie performance" per chiave NOPORTAL_MY
+
+### Comportamento Sistema
+
+#### **Accesso Normale** (da menu standard)
+- ✅ **Campi**: Tutti modificabili secondo permessi utente
+- ✅ **Schede**: Visibili in tutti gli stati
+- ✅ **Funzionalità**: Complete (salvataggio, modifica, ecc.)
+
+#### **Accesso Portale** (da "Mie performance")
+- 🔒 **Campi**: Tutti in read-only (non modificabili)
+- 🔍 **Schede**: Solo quelle in stato "Valutazione Conclusa"
+- 👁️ **Modalità**: Solo visualizzazione
+- ✅ **UOC**: Solo schede della propria Unità Operativa Complessa
+
+### Flusso Valutazione
+1. **Valutatore** completa la scheda → stato diventa `WEEVALST_EXECFINAL`
+2. **Dipendente** accede al portale "Mie performance"
+3. **Sistema** mostra la scheda completata in read-only
+4. **Dipendente** può consultare la propria valutazione senza modificarla
+
+### Sicurezza
+- **Isolamento**: Portale completamente separato dal sistema normale
+- **Autorizzazione**: Solo utenti gruppo NOPORTAL_MY
+- **Read-Only**: Impossibile modificare dati accidentalmente
+- **Filtraggio**: Solo schede proprie e completate
+
+---
